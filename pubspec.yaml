@@ -2,7 +2,7 @@ name: radial_slider
 description: A radial slider widget.
 version: 0.0.1
 author: Amadeus <gliheng@gmail.com>
-homepage: http://pyco.me
+homepage: https://github.com/gliheng/radial_slider
 
 dependencies:
   flutter:
