@@ -1,28 +1,29 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-
 class RadialSlider extends StatefulWidget {
   double radius;
+  double minAngle;
   double maxAngle;
+  double initialAngle;
   Widget background;
   Color color;
   Color backgroundColor;
   Gradient backgroundGradient;
   ValueChanged<double> onChange;
   ValueChanged<double> onChanging;
-  double startAngle;
 
   RadialSlider({
     this.radius,
-    this.maxAngle = pi * 2,
+    this.initialAngle,
+    this.minAngle = - pi / 2,
+    this.maxAngle = pi * 1.5,
     this.background,
     this.color = Colors.orange,
     this.backgroundColor = Colors.purple,
-    this.startAngle = -pi/2,
     this.backgroundGradient = const RadialGradient(
-      colors: <Color>[Colors.black12, Colors.black26, Colors.black45,],
-      stops: <double>[0.6, 0.8, 1.0,],
+      colors: <Color>[Colors.black12, Colors.black26, Colors.black45],
+      stops: <double>[0.6, 0.8, 1.0],
     ),
     this.onChange,
     this.onChanging,
@@ -39,12 +40,12 @@ class _RadialSliderState extends State<RadialSlider> {
   @override
   void initState() {
     super.initState();
-    angle = widget.startAngle;
+    angle = widget.initialAngle ?? widget.minAngle;
   }
 
   _onPointerUp(PointerUpEvent evt) {
     if (widget.onChange != null) {
-      widget.onChange(angle - widget.startAngle);
+      widget.onChange(angle);
     }
   }
 
@@ -55,15 +56,19 @@ class _RadialSliderState extends State<RadialSlider> {
 
     // project dx dy onto circle
     var dPos = cos(dAngle) * sqrt(pow(dx, 2) + pow(dy, 2));
-    var r = _CicleLayoutDelegate.getRadius(context.size, widget.radius);
-    var newAngle = min(angle + dPos / r, widget.maxAngle + widget.startAngle);
-    newAngle = max(widget.startAngle, newAngle);
+
+    RenderBox box = context.findRenderObject();
+    Offset pos = box.globalToLocal(evt.position);
+    double r = sqrt(pow(pos.dx - context.size.width / 2, 2) + pow(pos.dy - context.size.height / 2, 2));
+    // var r = _RadialLayoutDelegate.getRadius(context.size, widget.radius);
+    double newAngle = min(angle + dPos / r, widget.maxAngle);
+    newAngle = max(widget.minAngle, newAngle);
     setState(() {
       angle = newAngle;
     });
 
     if (widget.onChanging != null) {
-      widget.onChanging(newAngle - widget.startAngle);
+      widget.onChanging(newAngle);
     }
   }
 
@@ -86,7 +91,7 @@ class _RadialSliderState extends State<RadialSlider> {
           onPointerMove: (evt) {_onPointerMove(evt, context);},
           onPointerUp: _onPointerUp,
           child: CustomSingleChildLayout(
-            delegate: _CicleLayoutDelegate(
+            delegate: _RadialLayoutDelegate(
               angle: angle,
               radius: widget.radius,
             ),
@@ -102,7 +107,7 @@ class _RadialSliderState extends State<RadialSlider> {
   }
 }
 
-class _CicleLayoutDelegate extends SingleChildLayoutDelegate {
+class _RadialLayoutDelegate extends SingleChildLayoutDelegate {
   static getRadius(Size size, double radius) {
     if (radius == null && size.width != double.infinity && size.height != double.infinity) {
       return min(size.width, size.height) / 2;
@@ -112,7 +117,7 @@ class _CicleLayoutDelegate extends SingleChildLayoutDelegate {
   double radius;
   double angle;
 
-  _CicleLayoutDelegate({this.radius, this.angle});
+  _RadialLayoutDelegate({this.radius, this.angle});
 
   @override
   Offset getPositionForChild(Size size, Size childSize) {
@@ -126,8 +131,8 @@ class _CicleLayoutDelegate extends SingleChildLayoutDelegate {
   }
 
   @override
-  bool shouldRelayout(_CicleLayoutDelegate oldDelegate) {
+  bool shouldRelayout(_RadialLayoutDelegate oldDelegate) {
     return oldDelegate.angle != angle
-    || oldDelegate.radius != radius;
+        || oldDelegate.radius != radius;
   }
 }

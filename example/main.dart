@@ -24,30 +24,33 @@ class MyApp extends StatelessWidget {
   }
 }
 
+const double START_ANGLE = - pi / 2;
+
 class AppBody extends StatefulWidget {
   @override
   _AppBodyState createState() => _AppBodyState();
 }
 
 class _AppBodyState extends State<AppBody> {
-  double angle = 0.0;
+  double angle = START_ANGLE;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Expanded(
-          flex: 1,
-          child: Center(child: Text('Angle: $angle'))
+        Container(
+          height: 60.0,
+          child: Center(child: Text('Angle: ${angle.toStringAsFixed(2)}'))
         ),
         Expanded(
-          flex: 3,
+          flex: 1,
           child: RadialSlider(
             color: Colors.yellow,
             backgroundColor: Colors.blue,
             backgroundGradient: null,
             radius: 120.0,
-            maxAngle: pi * 2,
+            initialAngle: angle,
+            maxAngle: pi * 2 - START_ANGLE,
             onChange: (a) {
               setState(() {
                 angle = a;
@@ -59,6 +62,9 @@ class _AppBodyState extends State<AppBody> {
               });
             },
           ),
+        ),
+        SizedBox(
+          height: 30.0,
         )
       ],
     );
